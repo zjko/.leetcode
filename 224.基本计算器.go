@@ -5,6 +5,7 @@
  */
 
 // @lc code=start
+
 func calculate(s string) int {
 	res, _ := calculateFunction(s)
 	return res
@@ -15,8 +16,37 @@ func calculateFunction(s string) (int, int) {
 	// fmt.Printf("=== %s\n", s)
 	tokenType, s2, i := getNextToken(s, i)
 	// fmt.Printf("type=%d content=%s i=%d\n", tokenType, s2, i)
-	if tokenType != NUMBER && tokenType != BRACKETS {
-		return 0, 0
+	if tokenType == OPERATION {
+		operation := s2
+		// 继续获取下一个操作数
+		tokenType, s2, i = getNextToken(s, i)
+		if tokenType != NUMBER && tokenType != BRACKETS {
+			print("ERROR")
+			return 0, 0
+		}
+		if tokenType == BRACKETS {
+			// fmt.Printf("type=%d content=%s i=%d\n",tokenType,s2,i)
+			a, iAdd := calculateFunction(s[i:])
+
+			switch operation {
+			case "+":
+				sum += a
+				i += iAdd
+			case "-":
+				sum -= a
+				i += iAdd
+			}
+
+		}
+
+		switch operation {
+		case "+":
+			a, _ := strconv.Atoi(s2)
+			sum += a
+		case "-":
+			a, _ := strconv.Atoi(s2)
+			sum -= a
+		}
 	}
 
 	if s2 == "(" {
@@ -44,8 +74,16 @@ func calculateFunction(s string) (int, int) {
 			if tokenType == BRACKETS {
 				// fmt.Printf("type=%d content=%s i=%d\n",tokenType,s2,i)
 				a, iAdd := calculateFunction(s[i:])
-				sum += a
-				i += iAdd
+
+				switch operation {
+				case "+":
+					sum += a
+					i += iAdd
+				case "-":
+					sum -= a
+					i += iAdd
+				}
+
 			}
 
 			switch operation {
@@ -100,6 +138,19 @@ func getNextToken(s string, i int) (TokenType, string, int) {
 			i++
 			return BRACKETS, str, i
 		} else if s[i] == '+' || s[i] == '-' {
+			if s[i] == '-' && (i == 0 || (s[i-1] == '-' || s[i-1] == '+' || s[i-1] == '(')) {
+				if s[i+1] >= '0' && s[i+1] <= '9' {
+					start := i
+					i++
+					for i < len(s) && s[i] >= '0' && s[i] <= '9' {
+						i++
+					}
+					end := i
+					numberStr := s[start:end]
+					return NUMBER, numberStr, i
+				}
+			}
+
 			str := fmt.Sprintf("%c", s[i])
 			i++
 			return OPERATION, str, i
